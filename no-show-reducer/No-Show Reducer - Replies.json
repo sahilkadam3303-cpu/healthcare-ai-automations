@@ -228,7 +228,7 @@
     },
     {
       "parameters": {
-        "sendTo": "onebitcoin2024@gmail.com",
+        "sendTo": "patient@example.com",
         "subject": "=Let's rebook your appointment {{ $('Update row in sheet').item.json.patient_id }}",
         "message": "Sorry you can't make it. Reply with a day and time that suits you and we'll rebook your appointment",
         "options": {}

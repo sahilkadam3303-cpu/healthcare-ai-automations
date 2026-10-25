@@ -182,7 +182,7 @@
     },
     {
       "parameters": {
-        "sendTo": "=sahilkadam3303@gmail.com",
+        "sendTo": "=clinic@example.com",
         "subject": "=🚨 CRITICAL lab result:   {{ $('Basic LLM Chain').item.json.output.patient_name }}",
         "message": "=Abnormal: {{ JSON.stringify($('Basic LLM Chain').item.json.output.abnormal) }} ",
         "options": {}
@@ -241,7 +241,7 @@
     {
       "parameters": {
         "operation": "sendAndWait",
-        "sendTo": "sahilkadam3303@gmail.com",
+        "sendTo": "clinic@example.com",
         "subject": "=Doctor approval: {{ $('Basic LLM Chain').item.json.output.patient_name }}",
         "message": "={{ $json.text }}",
         "options": {}
@@ -297,7 +297,7 @@
     },
     {
       "parameters": {
-        "sendTo": "sahilkadam3303@gmail.com",
+        "sendTo": "clinic@example.com",
         "subject": "=Your lab report summary: {{ $('Basic LLM Chain').item.json.output.test }}",
         "message": "={{ $('Basic LLM Chain1').item.json.text }}",
         "options": {}

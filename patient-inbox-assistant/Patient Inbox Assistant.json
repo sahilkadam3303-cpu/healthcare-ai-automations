@@ -230,7 +230,7 @@
     {
       "parameters": {
         "operation": "sendAndWait",
-        "sendTo": "onebitcoin2024@gmail.com",
+        "sendTo": "patient@example.com",
         "subject": "=Approve reply to {{ $('Basic LLM Chain').item.json.output.patient_name }}",
         "message": "={{ $json.text }}",
         "approvalOptions": {
@@ -292,7 +292,7 @@
     },
     {
       "parameters": {
-        "sendTo": "onebitcoin2024@gmail.com",
+        "sendTo": "patient@example.com",
         "subject": "Your clinic appointment request",
         "message": "={{ $('Basic LLM Chain1').item.json.text }}",
         "options": {}
@@ -496,7 +496,7 @@
     },
     {
       "parameters": {
-        "sendTo": "onebitcoin2024@gmail.com",
+        "sendTo": "patient@example.com",
         "subject": "=URGENT patient: {{ $('Basic LLM Chain').item.json.output.patient_name }}",
         "message": "=URGENT patient request - please call now.  Name: {{ $('Basic LLM Chain').item.json.output.patient_name }} Phone: {{ $('Basic LLM Chain').item.json.output.phone }} Doctor: {{ $('Basic LLM Chain').item.json.output.doctor }} Preferred time: {{ $('Basic LLM Chain').item.json.output.preferred_time }} Symptoms: {{ $('Basic LLM Chain').item.json.output.symptoms }}",
         "options": {}
