@@ -1,0 +1,797 @@
+{
+  "name": "Patient Inbox Assistant",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        48
+      ],
+      "id": "049232c7-fa63-4db6-bd59-9e64a14af663",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7840fb18-7a7b-4a35-9697-ae11b59a2bc9",
+              "name": "email_text",
+              "value": "Hi, this is Ravi Sharma. I have had chest pain since last night and want to see Dr. Mehta as soon as possible, maybe tomorrow morning? My number is 9876543210",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -336,
+        48
+      ],
+      "id": "2c7d9b36-267f-44a2-8c2e-830cdb77c616",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the details from this patient email: {{ $json.snippet }} urgency must be exactly one of: high, normal, low",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        384,
+        0
+      ],
+      "id": "49a46165-7dae-4d1e-9caa-b21ed05818dc",
+      "name": "Basic LLM Chain",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        272,
+        208
+      ],
+      "id": "97715cdb-1b1c-4ffd-a799-bfd73544bea7",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "YcKAGBbtlrH8Cfmh",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"patient_name\": \"Ravi Sharma\",\n  \"phone\": \"9876543210\",\n  \"doctor\": \"Dr. Mehta\",\n  \"preferred_time\": \"tomorrow morning\",\n  \"symptoms\": \"chest pain\",\n  \"urgency\": \"high\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        208
+      ],
+      "id": "991c3eed-b27f-4a78-9e40-f51b27330a95",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4",
+          "mode": "list",
+          "cachedResultName": "Clinic Appointments x1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 688795027,
+          "mode": "list",
+          "cachedResultName": "Patient Requests",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4/edit#gid=688795027"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "patient_name": "={{ $json.output.patient_name }}",
+            "phone": "={{ $json.output.phone }}",
+            "doctor": "={{ $json.output.doctor }}",
+            "preferred_time": "={{ $json.output.preferred_time }}",
+            "symptoms": "={{ $json.output.symptoms }}",
+            "urgency": "={{ $json.output.urgency }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "patient_name",
+              "displayName": "patient_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "doctor",
+              "displayName": "doctor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "preferred_time",
+              "displayName": "preferred_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "symptoms",
+              "displayName": "symptoms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        752,
+        32
+      ],
+      "id": "cf9dedcc-1272-44d6-bfcb-03aef1792181",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGLLzCE7nnPNo3uY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a short, polite reply to a clinic patient.\nName: {{ $('Basic LLM Chain').item.json.output.patient_name }}\nDoctor: {{ $('Basic LLM Chain').item.json.output.doctor }}\nPreferred time: {{ $('Basic LLM Chain').item.json.output.preferred_time }}\nUrgency: {{ $('Basic LLM Chain').item.json.output.urgency }}\nIf urgency is high, tell them to call the clinic now or go to emergency. Otherwise, say we will confirm a slot within 1 day. Keep it under 80 words. Do not give medical advice.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1424,
+        32
+      ],
+      "id": "3c2004e4-fb4d-4e81-abe1-da390bdf10ec",
+      "name": "Basic LLM Chain1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        912,
+        240
+      ],
+      "id": "df52c34d-ca16-4962-83a2-9e4ceba4aa0e",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "YcKAGBbtlrH8Cfmh",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "onebitcoin2024@gmail.com",
+        "subject": "=Approve reply to {{ $('Basic LLM Chain').item.json.output.patient_name }}",
+        "message": "={{ $json.text }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1792,
+        32
+      ],
+      "id": "e0f16690-81b0-46dd-9373-650bd6917a6e",
+      "name": "Send message and wait for response",
+      "webhookId": "8a033f93-adae-4d6a-8782-1ab38ab04673",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6a75cf57-5b7c-42f1-808a-75fa16f3f6f1",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2016,
+        48
+      ],
+      "id": "7d9e82b4-fe7b-4d47-b8df-556252ecafa8",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "onebitcoin2024@gmail.com",
+        "subject": "Your clinic appointment request",
+        "message": "={{ $('Basic LLM Chain1').item.json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2464,
+        32
+      ],
+      "id": "caa594f6-4b17-4ae2-afc8-0d57f25d1aff",
+      "name": "Send a message",
+      "webhookId": "66d8e630-d083-4123-ab38-13458d598d09",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d81f1974-1c14-4140-ab43-d350063a4d11",
+              "name": "status",
+              "value": "rejected by staff",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        2464,
+        144
+      ],
+      "id": "c7e51527-9ad3-4825-b90c-1fb7090e48b1",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4",
+          "mode": "list",
+          "cachedResultName": "Clinic Appointments x1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 45916151,
+          "mode": "list",
+          "cachedResultName": "Run Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4/edit#gid=45916151"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "workflow": "Patient Inbox Assistant - reply",
+            "items_processed": "1",
+            "errors": "0",
+            "minutes_saved": "5"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "workflow",
+              "displayName": "workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "items_processed",
+              "displayName": "items_processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "errors",
+              "displayName": "errors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "minutes_saved",
+              "displayName": "minutes_saved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2688,
+        32
+      ],
+      "id": "ed66b427-eb6f-4818-9275-72c45de5ec20",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGLLzCE7nnPNo3uY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        112,
+        -16
+      ],
+      "id": "737ca238-868f-40ec-8e21-e048c6061cb1",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0dec1c73-277d-468f-86e7-4d36ba50c5bc",
+              "leftValue": "={{ $('Basic LLM Chain').item.json.output.urgency }}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        976,
+        32
+      ],
+      "id": "d76ececc-1fc7-42ca-bf18-e76df57db323",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sendTo": "onebitcoin2024@gmail.com",
+        "subject": "=URGENT patient: {{ $('Basic LLM Chain').item.json.output.patient_name }}",
+        "message": "=URGENT patient request - please call now.  Name: {{ $('Basic LLM Chain').item.json.output.patient_name }} Phone: {{ $('Basic LLM Chain').item.json.output.phone }} Doctor: {{ $('Basic LLM Chain').item.json.output.doctor }} Preferred time: {{ $('Basic LLM Chain').item.json.output.preferred_time }} Symptoms: {{ $('Basic LLM Chain').item.json.output.symptoms }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        -112
+      ],
+      "id": "e7eb2488-6a16-4020-98ba-54e459588635",
+      "name": "Send a message1",
+      "webhookId": "a530856a-8ec9-4b92-8165-d08710735204",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4",
+          "mode": "list",
+          "cachedResultName": "Clinic Appointments x1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 45916151,
+          "mode": "list",
+          "cachedResultName": "Run Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1yywnToHGKEMmbZX1QLloPOA28jRGRi6fKK2fMx00kF4/edit#gid=45916151"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now.toFormat('yyyy-MM-dd HH:mm') }}",
+            "workflow": "Patient Inbox Assistant - urgent",
+            "items_processed": "1",
+            "errors": "0",
+            "minutes_saved": "5"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow",
+              "displayName": "workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "items_processed",
+              "displayName": "items_processed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "errors",
+              "displayName": "errors",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "minutes_saved",
+              "displayName": "minutes_saved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1424,
+        -112
+      ],
+      "id": "81c77b7a-3c3c-4ddc-ae49-f65270a6fc11",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGLLzCE7nnPNo3uY",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "T6WBtkuP5LP19CU3",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "aba5af3d-9d96-40ff-9540-0109b9b84233",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6554bbc3db38528058725b989b6cc3111a46b0f45fdc39e681a884be3424f25e"
+  },
+  "nodeGroups": [],
+  "id": "Z5x7mQAK6u1XskFx",
+  "tags": []
+}

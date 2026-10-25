@@ -1,0 +1,571 @@
+{
+  "name": "Lab Report Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "subject:\"Lab report\" has:attachment"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d2becf28-a7e1-40d8-91bf-4bc748269043",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "cf9aeaa5-bf97-4f76-8b08-8cf65062089b",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Read this lab report and return only JSON.\n{{ $json.text }}  severity must be exactly one word: normal, borderline, or critical",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f78211d5-3bd9-445a-bda1-0e2d2c8e0ba8",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        336,
+        208
+      ],
+      "id": "b6d031dd-d1fa-4d0d-87f8-f5c3918d2635",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "YcKAGBbtlrH8Cfmh",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"patient_name\": \"Rahul Mehta\",\n  \"patient_id\": \"P2001\",\n  \"test\": \"CBC\",\n  \"abnormal\": [{\"test\": \"Hemoglobin\", \"value\": \"10.2\", \"flag\": \"LOW\"}],\n  \"severity\": \"borderline\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        208
+      ],
+      "id": "ec32a98a-123c-44e9-b032-609fdb93451a",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.severity }}",
+                    "rightValue": "critical",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ceb8b225-59a2-4978-a422-ee7602c9f4fd"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "19680876-ad98-4d67-b489-29d0e6e2f1a3",
+                    "leftValue": "={{ $json.output.severity }}",
+                    "rightValue": "borderline",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fa450b0d-abf0-4e50-81ee-4d4d5c9d92b0",
+                    "leftValue": "={{ $json.output.severity }}",
+                    "rightValue": "normal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        0
+      ],
+      "id": "5a6a6a55-316a-4764-b087-071496812e5f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "sendTo": "=sahilkadam3303@gmail.com",
+        "subject": "=🚨 CRITICAL lab result:   {{ $('Basic LLM Chain').item.json.output.patient_name }}",
+        "message": "=Abnormal: {{ JSON.stringify($('Basic LLM Chain').item.json.output.abnormal) }} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        -128
+      ],
+      "id": "1b132335-a545-4b72-abca-e9a614f083d5",
+      "name": "Send a message",
+      "webhookId": "2627843d-3f8d-4133-bf67-3486c810e2c1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a short, friendly summary of this lab report for the patient in simple words. Do not diagnose. Suggest they talk to their doctor about any abnormal values.\n{{ JSON.stringify($json.output) }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "2b8a6b2a-bec5-4814-94a5-b67ad4b06823",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        976,
+        208
+      ],
+      "id": "d891318e-7f9c-440b-bfcc-2cb91cf09cd3",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "YcKAGBbtlrH8Cfmh",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "sahilkadam3303@gmail.com",
+        "subject": "=Doctor approval: {{ $('Basic LLM Chain').item.json.output.patient_name }}",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1408,
+        0
+      ],
+      "id": "ba01d213-1561-457b-8548-0e94249e0e32",
+      "name": "Send message and wait for response",
+      "webhookId": "6573d5f5-5744-4df1-8181-80688b20050d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dd36477f-4c92-4b98-88f7-9a1fde1c5921",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1632,
+        0
+      ],
+      "id": "2cbdb2ab-790d-42fc-a397-c5308bc6b233",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "sahilkadam3303@gmail.com",
+        "subject": "=Your lab report summary: {{ $('Basic LLM Chain').item.json.output.test }}",
+        "message": "={{ $('Basic LLM Chain1').item.json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1856,
+        -32
+      ],
+      "id": "548c656f-4442-4d39-b0c8-edf09fed2ef3",
+      "name": "Send a message1",
+      "webhookId": "da66b76e-bdf5-4ccc-8db6-edf00831675a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw",
+          "mode": "list",
+          "cachedResultName": "workflow spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1175519958,
+          "mode": "list",
+          "cachedResultName": "Lab Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit#gid=1175519958"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now }}",
+            "patient_id": "={{ $('Basic LLM Chain').item.json.output.patient_id }}",
+            "test": "={{ $('Basic LLM Chain').item.json.output.test }}",
+            "severity": "={{ $('Basic LLM Chain').item.json.output.severity }}",
+            "approved": "yes"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patient_id",
+              "displayName": "patient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "test",
+              "displayName": "test",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "severity",
+              "displayName": "severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "approved",
+              "displayName": "approved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2080,
+        -32
+      ],
+      "id": "b8b5136c-ca0b-4159-a45c-a64f14ddcad5",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGLLzCE7nnPNo3uY",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "T6WBtkuP5LP19CU3",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "d13c2eed-bd41-4ecc-8e1d-0c541ba260f3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6554bbc3db38528058725b989b6cc3111a46b0f45fdc39e681a884be3424f25e"
+  },
+  "nodeGroups": [],
+  "id": "mPUj5FS4lD3ptlne",
+  "tags": []
+}

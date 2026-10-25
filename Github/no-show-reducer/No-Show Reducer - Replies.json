@@ -1,0 +1,402 @@
+{
+  "name": "No-Show Reducer - Replies",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "q": "subject:\"Please confirm: appointment\""
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "052d1bfd-1150-4a2d-b066-97745d4b47e6",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const s = $json.Subject || $json.subject || '';\nconst body = ($json.snippet || '').toUpperCase();\nreturn [{ json: {\n  patient_id: (s.match(/P\\d{4}/) || [''])[0],\n  answer: body.startsWith('YES') ? 'confirmed' : body.startsWith('NO') ? 'cancelled' : 'unclear'\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "7f21dd4f-ea5f-4c0c-b0a3-e1278b795450",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw",
+          "mode": "list",
+          "cachedResultName": "workflow spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 583453712,
+          "mode": "list",
+          "cachedResultName": "clinic_60_patients_clean",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit#gid=583453712"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "={{ $json.answer }}",
+            "patient_id": "={{ $json.patient_id }}"
+          },
+          "matchingColumns": [
+            "patient_id"
+          ],
+          "schema": [
+            {
+              "id": "patient_id",
+              "displayName": "patient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "patient_name",
+              "displayName": "patient_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "age",
+              "displayName": "age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "doctor",
+              "displayName": "doctor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "appointment_date",
+              "displayName": "appointment_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "notes",
+              "displayName": "notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "158a88f8-6929-474f-b06a-60fcf8ae3c96",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGLLzCE7nnPNo3uY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7b9b2f8c-ac44-4463-9297-ba86892096cb",
+              "leftValue": "={{ $('Code in JavaScript').item.json.answer }}",
+              "rightValue": "cancelled",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        0
+      ],
+      "id": "6d4d92c5-18cc-49f5-9fdb-60c5cd1e8337",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "onebitcoin2024@gmail.com",
+        "subject": "=Let's rebook your appointment {{ $('Update row in sheet').item.json.patient_id }}",
+        "message": "Sorry you can't make it. Reply with a day and time that suits you and we'll rebook your appointment",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        -96
+      ],
+      "id": "717fea90-752c-4387-aaca-085d1faadc2f",
+      "name": "Send a message",
+      "webhookId": "71232129-916c-4de7-a211-6e309d57128a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw",
+          "mode": "list",
+          "cachedResultName": "workflow spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 355608929,
+          "mode": "list",
+          "cachedResultName": "NoShow Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit#gid=355608929"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now }}",
+            "patient_id": "={{ $json.patient_id }}",
+            "answer": "={{ $json.answer }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "patient_id",
+              "displayName": "patient_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "answer",
+              "displayName": "answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "e7f7e945-ac8b-4c8d-912a-f1896078f7a2",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGLLzCE7nnPNo3uY",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "T6WBtkuP5LP19CU3",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "9756ec04-718e-4c63-8f8d-313f0c385d23",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6554bbc3db38528058725b989b6cc3111a46b0f45fdc39e681a884be3424f25e"
+  },
+  "nodeGroups": [],
+  "id": "x7JEp0vu7UT3bul0",
+  "tags": []
+}

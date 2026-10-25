@@ -1,0 +1,247 @@
+{
+  "name": "No-Show Reducer - Send",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8ae90ab9-ac2a-44c3-b2c6-802c13c0cb83",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw",
+          "mode": "list",
+          "cachedResultName": "workflow spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 583453712,
+          "mode": "list",
+          "cachedResultName": "clinic_60_patients_clean",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Nnbn1d9ff_WywPpN6VSHZB2O0qnyn_eZF8HreROcLBw/edit#gid=583453712"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "status",
+              "lookupValue": "pending"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0ac4772f-a4e7-4541-bc9a-f0be32db5a8d",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eGLLzCE7nnPNo3uY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a995795a-133c-4fbc-99eb-726aab655feb",
+              "leftValue": "={{ $json.appointment_date }}",
+              "rightValue": "={{ $now.plus({days: 1}).toFormat('yyyy-MM-dd') }}",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "4c6cb74b-f04f-4b1b-ab35-2ee1f1a6d18a",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "4bd25255-40a8-420a-b51f-8c65d77989ac",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a friendly 2-sentence appointment reminder for {{ $json.patient_name }} with {{ $json.doctor }} on {{ $json.appointment_date }}. Note: {{ $json.notes }}. No medical advice. Return only the message.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        896,
+        0
+      ],
+      "id": "437a2476-88fa-4fd6-bfa1-3b388e5659ab",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "nvidia/nemotron-3.5-super-vl:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        832,
+        208
+      ],
+      "id": "2fa91c04-7a9f-49b2-b077-f4c9296e5576",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "YcKAGBbtlrH8Cfmh",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Limit').item.json.email }}",
+        "subject": "=Please confirm: appointment {{ $('Limit').item.json.patient_id }}",
+        "message": "={{ $json.text }}  Reply YES to confirm or NO to cancel.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "71ca3e48-fc8e-4c26-80c3-1261c445c8b1",
+      "name": "Send a message",
+      "webhookId": "cb1d838d-c8b5-4e21-8b3d-131725f1fa94",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "BIdd7G3A00TZ1BYI",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "T6WBtkuP5LP19CU3",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "1ccc37c2-a92f-4e15-8c06-d0b88afa8013",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6554bbc3db38528058725b989b6cc3111a46b0f45fdc39e681a884be3424f25e"
+  },
+  "nodeGroups": [],
+  "id": "Ylkj6P1grnQVz6Hp",
+  "tags": []
+}
